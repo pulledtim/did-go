@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/trustbloc/kms-go/doc/jose/jwk"
 	"github.com/trustbloc/kms-go/doc/jose/jwk/jwksupport"
 	"github.com/trustbloc/kms-go/doc/util/fingerprint"
 
@@ -55,6 +56,8 @@ func createDIDDocFromPubKey(kid string, code uint64, pubKeyBytes []byte) (*did.D
 		return createBase58DIDDoc(kid, bls12381G2Key2020, pubKeyBytes)
 	case fingerprint.P256PubKeyMultiCodec, fingerprint.P384PubKeyMultiCodec, fingerprint.P521PubKeyMultiCodec:
 		return createJSONWebKey2020DIDDoc(kid, code, pubKeyBytes)
+	case 0xeb51: // Place in https://github.com/trustbloc/kms-go/blob/main/doc/util/fingerprint/fingerprint.go
+		return createJWKJCSPUBDIDDoc(kid, pubKeyBytes)
 	}
 
 	return nil, fmt.Errorf("unsupported key multicodec code [0x%x]", code)
@@ -65,6 +68,27 @@ func createBase58DIDDoc(kid, keyType string, pubKeyBytes []byte) (*did.Doc, erro
 
 	keyID := fmt.Sprintf("%s#%s", didKey, kid)
 	publicKey := did.NewVerificationMethodFromBytes(keyID, keyType, didKey, pubKeyBytes)
+
+	didDoc := createDoc(publicKey, publicKey, didKey)
+
+	return didDoc, nil
+}
+
+func createJWKJCSPUBDIDDoc(kid string, pubKeyBytes []byte) (*did.Doc, error) {
+	didKey := fmt.Sprintf("did:key:%s", kid)
+	keyID := fmt.Sprintf("%s#%s", didKey, kid)
+
+	var jwk jwk.JWK
+
+	err := jwk.UnmarshalJSON(pubKeyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("error creating JWK %w", err)
+	}
+
+	publicKey, err := did.NewVerificationMethodFromJWK(keyID, jsonWebKey2020, didKey, &jwk)
+	if err != nil {
+		return nil, fmt.Errorf("error creating verification method %w", err)
+	}
 
 	didDoc := createDoc(publicKey, publicKey, didKey)
 

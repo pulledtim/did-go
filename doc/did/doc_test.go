@@ -71,6 +71,12 @@ var (
 	validDocWithServiceEndpoint string
 )
 
+func TestTim(t *testing.T) {
+	did, err := Parse("did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbnPqt55NG29q8Re1ZVdg7X8RpqraEb9YaMyypYLzMyvre78pJ3Mz1GeN71YL1GBvwtNu5KtoDeT6D51hAY2VMemiqDihyqnTGHosBNRykPCYtLe8XiHfWFWMdc3XRvyeWXv") //nolint:lll
+	require.NoError(t, err)
+	require.NotNil(t, did)
+}
+
 func TestParseOfNull(t *testing.T) {
 	doc, err := ParseDocument([]byte("null"))
 	require.Error(t, err)

@@ -55,6 +55,23 @@ func TestReadInvalid(t *testing.T) {
 	})
 }
 
+func TestReadJWKJCSPUB(t *testing.T) {
+	const (
+		didJWKJCSPUB = "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbnmWKtdWaiTifiy5x9NoUbZaXoEn94oJqboXvpknL12XUp3Cep7p2kQCQ9MChNK2yRBscY8fpjnxR3m9oH2qnv67KnCi3nhSrNyS1sngGUyLhQQWJWaCBqr5qvtDQ1qgTqW" //nolint:lll
+	)
+
+	t.Run("resolve assuming default key type", func(t *testing.T) {
+		v := New()
+
+		docResolution, err := v.Read(didJWKJCSPUB)
+		require.NoError(t, err)
+		require.NotNil(t, docResolution.DIDDocument)
+		require.True(t, docResolution.DIDDocument.KeyAgreement[0].Embedded)
+
+		//assertEd25519Doc(t, docResolution.DIDDocument, ed25519VerificationKey2018, x25519KeyAgreementKey2019)
+	})
+}
+
 func TestReadEd25519(t *testing.T) {
 	const (
 		didEd25519 = "did:key:z6MkpTHR8VNsBxYAAWHut2Geadd9jSwuBV8xRoAnwWsdvktH"
